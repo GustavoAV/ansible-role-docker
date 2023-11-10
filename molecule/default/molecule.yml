@@ -1,0 +1,33 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+platforms:
+  - name: ub20
+    box: ubuntu/focal64
+  - name: ub22
+    box: ubuntu/jammy64
+  - name: al8
+    box: almalinux/8
+  - name: al9
+    box: almalinux/9
+provisioner:
+  name: ansible
+  # config_options:
+  #   defaults:
+  #     # Show tasks timing and results at end of play
+  #     callbacks_enabled: ansible.posix.profile_tasks
+  # inventory:
+  #   group_vars:
+  #     all:
+  #       apache_website_name: example
+  #       mysql_db_host: localhost
+  #       mysql_db_user: user
+  #       mysql_db_pass: pass
+  #       mysql_db_name: app
+  #       mysql_root_password: supersecret
+verifier:
+  name: ansible
