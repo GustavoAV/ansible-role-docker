@@ -1,0 +1,13 @@
+# trunk-ignore-all(checkov/CKV2_ANSIBLE_2)
+---
+- name: Uninstall old Docker packages
+  ansible.builtin.yum:
+    name: "{{ docker_redhat_old_pkgs }}"
+    state: absent
+
+- name: Add Docker repository
+  ansible.builtin.get_url:
+    url: "{{ docker_base_linux_url }}/centos/docker-ce.repo"
+    dest: /etc/yum.repos.d/docker-ce.repo
+    mode: "0644"
+  notify: Update yum cache
