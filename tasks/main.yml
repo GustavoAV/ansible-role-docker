@@ -5,17 +5,9 @@
   vars:
     ansible_become: true
 
-- name: Apply notified handlers
-  ansible.builtin.meta: flush_handlers
-
 - name: Install Docker and Docker Compose
   ansible.builtin.package:
-    name:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-      - docker-buildx-plugin
-      - docker-compose-plugin
+    name: "{{ docker_pkg_list }}"
     state: present
   become: true
 

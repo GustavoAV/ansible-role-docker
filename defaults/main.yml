@@ -1,3 +1,35 @@
 ---
 docker_apt_gpg_file: /etc/apt/keyrings/docker.gpg
 docker_base_linux_url: https://download.docker.com/linux
+
+docker_debian_deps:
+  - ca-certificates
+  - curl
+  - gnupg
+
+docker_debian_old_pkgs:
+  - docker.io
+  - docker-compose
+  - docker-doc
+  - podman-docker
+  - containerd
+  - runc
+
+docker_redhat_old_pkgs:
+  - docker
+  - docker-client
+  - docker-client-latest
+  - docker-common
+  - docker-latest
+  - docker-latest-logrotate
+  - docker-logrotate
+  - docker-engine
+  - podman
+  - runc
+
+docker_pkg_list:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
