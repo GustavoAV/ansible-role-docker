@@ -1,0 +1,50 @@
+---
+- name: Include OS specific tasks
+  ansible.builtin.include_tasks:
+    file: "{{ ansible_os_family | lower }}.yml"
+  vars:
+    ansible_become: true
+
+- name: Apply notified handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Install Docker and Docker Compose
+  ansible.builtin.package:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+  become: true
+
+- name: Start Docker service
+  ansible.builtin.service:
+    name: docker
+    state: started
+  become: true
+
+- name: Create docker group
+  ansible.builtin.group:
+    name: docker
+    state: present
+  become: true
+
+- name: Add user to docker group
+  ansible.builtin.user:
+    name: "{{ ansible_facts['user_id'] }}"
+    groups: docker
+    append: true
+    state: present
+  become: true
+  notify: Reset ssh connection
+
+- name: Apply notified handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Validate install
+  ansible.builtin.command:
+    cmd: docker run hello-world
+  register: docker_run_test
+  changed_when: docker_run_test.rc != 0

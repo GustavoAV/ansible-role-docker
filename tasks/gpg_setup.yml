@@ -1,0 +1,27 @@
+---
+- name: Create temporary directory
+  ansible.builtin.tempfile:
+    state: directory
+  register: docker_temp_gpg
+
+# trunk-ignore(checkov/CKV2_ANSIBLE_2)
+- name: Add docker repo gpg key
+  ansible.builtin.get_url:
+    url: "{{ docker_base_linux_url }}/ubuntu/gpg"
+    dest: "{{ docker_temp_gpg.path }}/gpg"
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: Dearmor docker gpg key
+  ansible.builtin.shell:
+    cmd: set -o pipefail && cat {{ docker_temp_gpg.path }}/gpg |
+      gpg --dearmor -o {{ docker_apt_gpg_file }}
+    creates: "{{ docker_apt_gpg_file }}"
+    executable: /bin/bash
+  notify: Update apt cache
+
+- name: Remove temporary directory
+  ansible.builtin.file:
+    path: "{{ docker_temp_gpg.path }}"
+    state: absent

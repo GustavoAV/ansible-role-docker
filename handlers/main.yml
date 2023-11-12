@@ -1,0 +1,13 @@
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+
+- name: Update yum cache
+  ansible.builtin.yum:
+    update_cache: true
+  become: true
+
+- name: Reset ssh connection
+  ansible.builtin.meta: reset_connection

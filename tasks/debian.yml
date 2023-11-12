@@ -1,0 +1,70 @@
+---
+- name: Uninstall old Docker packages
+  ansible.builtin.apt:
+    name:
+      - docker.io
+      - docker-compose
+      - docker-doc
+      - podman-docker
+      - containerd
+      - runc
+    state: absent
+
+- name: Add dependencies
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+    update_cache: true
+
+- name: Create keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    mode: "0755"
+    owner: root
+    group: root
+    state: directory
+
+- name: Check if docker.gpg already exists
+  ansible.builtin.stat:
+    path: "{{ docker_apt_gpg_file }}"
+  register: docker_gpg_file
+
+- name: Run tasks if docker.gpg is absent
+  ansible.builtin.include_tasks:
+    file: gpg_setup.yml
+  when: not docker_gpg_file.stat.exists
+
+- name: Get machine architecture
+  ansible.builtin.command:
+    cmd: dpkg --print-architecture
+  register: docker_dpkg_arch
+  changed_when: false
+
+# Gets the proper codename even when running on Ubuntu based (e.g. Linux Mint)
+- name: Get distro codename
+  block:
+    - name: Get codename if Ubuntu or Ubuntu based
+      ansible.builtin.command:
+        cmd: grep -oP '^UBUNTU_CODENAME=\K.*' /etc/os-release
+      changed_when: false
+      register: docker_codename_check
+
+    - name: Set codename fact
+      ansible.builtin.set_fact:
+        docker_distro_codename: "{{ docker_codename_check.stdout }}"
+
+  rescue:
+    - name: Set codename fact
+      ansible.builtin.set_fact:
+        docker_distro_codename: "{{ ansible_distribution_release }}"
+
+- name: Add Docker repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ docker_dpkg_arch.stdout }}
+      signed-by={{ docker_apt_gpg_file }}]
+      {{ docker_base_linux_url }}/ubuntu {{ docker_distro_codename }} stable"
+    state: present
+  notify: Update apt cache
