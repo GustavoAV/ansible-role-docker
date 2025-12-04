@@ -8,7 +8,7 @@ docker_apt_gpg_file: /etc/apt/keyrings/docker.asc
 # Apt repository full string
 docker_apt_repo_string: >
   deb [arch={{ docker_dpkg_arch.stdout }} signed-by={{ docker_apt_gpg_file }}]
-  {{ docker_base_linux_url }}/{{ ansible_distribution | lower }} {{ docker_distro_codename.stdout }} stable
+  {{ docker_base_linux_url }}/{{ ansible_facts['distribution'] | lower }} {{ docker_distro_codename.stdout }} stable
 
 # Debian/Ubuntu dependencies
 docker_debian_deps:
