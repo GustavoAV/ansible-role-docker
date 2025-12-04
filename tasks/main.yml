@@ -1,0 +1,46 @@
+---
+- name: Include OS specific tasks
+  ansible.builtin.include_tasks:
+    file: "{{ ansible_os_family | lower }}.yml"
+
+- name: Install Docker and Docker Compose
+  ansible.builtin.package:
+    name: "{{ docker_install_pkgs }}"
+    state: present
+
+- name: Create docker group
+  ansible.builtin.group:
+    name: docker
+    state: present
+
+- name: Add user to docker group
+  ansible.builtin.user:
+    name: "{{ ansible_facts['user_id'] }}"
+    groups: docker
+    append: true
+    state: present
+  notify: Reset ssh connection
+
+- name: Configure docker daemon
+  ansible.builtin.copy:
+    content: "{{ docker_daemon_json }}"
+    dest: /etc/docker/daemon.json
+    mode: "0644"
+    backup: true
+    validate: dockerd --config-file=%s --validate
+  diff: true
+  notify: Restart docker daemon
+
+- name: Start and enable Docker service
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Apply notified handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Validate install
+  ansible.builtin.command:
+    cmd: docker run --rm hello-world
+  changed_when: false

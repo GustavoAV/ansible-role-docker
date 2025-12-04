@@ -1,0 +1,49 @@
+---
+- name: Uninstall old Docker packages
+  ansible.builtin.apt:
+    name: "{{ docker_debian_old_pkgs }}"
+    state: absent
+
+- name: Add dependencies
+  ansible.builtin.apt:
+    name: "{{ docker_debian_deps }}"
+    state: present
+    update_cache: true
+
+- name: Create keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    mode: "0755"
+    owner: root
+    group: root
+    state: directory
+
+- name: Add docker repo gpg key
+  ansible.builtin.get_url:
+    url: "{{ docker_base_linux_url }}/ubuntu/gpg"
+    dest: "{{ docker_apt_gpg_file }}"
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: Get machine architecture
+  ansible.builtin.command:
+    cmd: dpkg --print-architecture
+  register: docker_dpkg_arch
+  changed_when: false
+
+# Gets the proper codename even when running on Ubuntu based (e.g. Linux Mint)
+- name: Gets distro codename
+  ansible.builtin.shell:
+    cmd: . /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}"
+  changed_when: false
+  register: docker_distro_codename
+
+- name: Add Docker repository
+  ansible.builtin.apt_repository:
+    repo: "{{ docker_apt_repo_string }}"
+    state: present
+  notify: Update apt cache
+
+- name: Apply handlers
+  ansible.builtin.meta: flush_handlers
