@@ -44,3 +44,6 @@
   ansible.builtin.command:
     cmd: docker run --rm hello-world
   changed_when: false
+  # Do not run in GitHub Actions (docker-in-docker doesn't work atm)
+  when: >
+    "-azure" not in ansible_facts['kernel']
