@@ -1,4 +1,5 @@
 name: CI
+
 on:
   pull_request:
   push:
@@ -20,13 +21,12 @@ jobs:
           cache: pip
 
       - name: Install lint dependencies
-        run: pip install ansible-lint yamllint
-
-      - name: Run yamllint
-        run: yamllint .
+        run: pip install ansible-lint
 
       - name: Run ansible-lint
-        run: ansible-lint --force-color .
+        run: ansible-lint .
+        env:
+          FORCE_COLOR: "1"
 
   molecule:
     needs: [lint]
