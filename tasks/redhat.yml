@@ -9,7 +9,9 @@
     url: "{{ docker_base_linux_url }}/centos/docker-ce.repo"
     dest: /etc/yum.repos.d/docker-ce.repo
     mode: "0644"
-  notify: Update dnf cache
+  register: docker_dnf_setup_repo
 
-- name: Apply handlers
-  ansible.builtin.meta: flush_handlers
+- name: Update dnf cache # noqa: no-handler
+  ansible.builtin.dnf:
+    update_cache: true
+  when: docker_dnf_setup_repo is changed

@@ -1,12 +1,4 @@
 ---
-- name: Update apt cache
-  ansible.builtin.apt:
-    update_cache: true
-
-- name: Update dnf cache
-  ansible.builtin.dnf:
-    update_cache: true
-
 - name: Reset ssh connection
   ansible.builtin.meta: reset_connection
 

@@ -5,10 +5,14 @@ docker_base_linux_url: https://download.docker.com/linux
 # Gpg repo key file
 docker_apt_gpg_file: /etc/apt/keyrings/docker.asc
 
-# Apt repository full string
-docker_apt_repo_string: >
-  deb [arch={{ docker_dpkg_arch.stdout }} signed-by={{ docker_apt_gpg_file }}]
-  {{ docker_base_linux_url }}/{{ ansible_facts['distribution'] | lower }} {{ docker_distro_codename.stdout }} stable
+# Apt repository sources file
+docker_apt_repo_sources: |
+  Types: deb
+  URIs: {{ docker_base_linux_url }}/{{ ansible_facts['distribution'] | lower }}
+  Suites: {{ docker_distro_codename.stdout }}
+  Components: stable
+  Architectures: {{ docker_dpkg_arch.stdout }}
+  Signed-By: {{ docker_apt_gpg_file }}
 
 # Debian/Ubuntu dependencies
 docker_debian_deps:

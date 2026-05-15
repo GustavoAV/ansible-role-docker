@@ -29,8 +29,8 @@
 - name: Get machine architecture
   ansible.builtin.command:
     cmd: dpkg --print-architecture
-  register: docker_dpkg_arch
   changed_when: false
+  register: docker_dpkg_arch
 
 # Gets the proper codename even when running on Ubuntu based (e.g. Linux Mint)
 - name: Gets distro codename
@@ -40,10 +40,15 @@
   register: docker_distro_codename
 
 - name: Add Docker repository
-  ansible.builtin.apt_repository:
-    repo: "{{ docker_apt_repo_string }}"
-    state: present
-  notify: Update apt cache
+  ansible.builtin.copy:
+    content: "{{ docker_apt_repo_sources }}"
+    dest: /etc/apt/sources.list.d/docker.sources
+    mode: "0644"
+    owner: root
+    group: root
+  register: docker_apt_setup_repo
 
-- name: Apply handlers
-  ansible.builtin.meta: flush_handlers
+- name: Update apt cache # noqa: no-handler
+  ansible.builtin.apt:
+    update_cache: true
+  when: docker_apt_setup_repo is changed
