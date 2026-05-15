@@ -12,7 +12,7 @@ Ansible role to setup Docker.
 
 These are the requirements for using this role:
 
-- Operational system: Debian 11+, Ubuntu 22+ or RedHat 9+
+- Operational system: Debian 12+, Ubuntu 22+ or RedHat 9+
 
 ## Usage
 
