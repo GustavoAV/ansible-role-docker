@@ -37,7 +37,6 @@ Apply the role with a playbook. E.g: Create the following file and apply with `a
 ---
 - name: Install Docker
   hosts: all
-  become: true
   roles: [gustavoav.docker]
 ```
 

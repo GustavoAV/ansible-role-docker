@@ -3,15 +3,18 @@
   ansible.builtin.dnf:
     name: "{{ docker_redhat_old_pkgs }}"
     state: absent
+  become: true
 
 - name: Add Docker repository
   ansible.builtin.get_url:
     url: "{{ docker_base_linux_url }}/centos/docker-ce.repo"
     dest: /etc/yum.repos.d/docker-ce.repo
     mode: "0644"
+  become: true
   register: docker_dnf_setup_repo
 
 - name: Update dnf cache # noqa: no-handler
   ansible.builtin.dnf:
     update_cache: true
+  become: true
   when: docker_dnf_setup_repo is changed
