@@ -1,7 +1,12 @@
 ---
+- name: Detects if running inside container
+  ansible.builtin.set_fact:
+    docker_host_is_container: "{{ (ansible_facts.virtualization_role == 'guest') and
+      (ansible_facts.virtualization_type in ['docker', 'podman', 'lxc', 'openvz']) }}"
+
 - name: Include OS specific tasks
   ansible.builtin.include_tasks:
-    file: "{{ ansible_os_family | lower }}.yml"
+    file: "{{ ansible_facts.os_family | lower }}.yml"
 
 - name: Install Docker and Docker Compose
   ansible.builtin.package:
@@ -9,50 +14,46 @@
     state: present
   become: true
 
-- name: Create docker group
-  ansible.builtin.group:
-    name: docker
-    state: present
-  become: true
+- name: Post-install tasks - Rootful mode
+  ansible.builtin.include_tasks:
+    file: postinstall_rootful.yml
+  when: docker_enable_rootless_mode is not truthy
 
-- name: Store non-root user name
-  ansible.builtin.set_fact:
-    docker_non_root_user: "{{ ansible_facts.user_id }}"
-
-- name: Add user to docker group
-  ansible.builtin.user:
-    name: "{{ docker_non_root_user }}"
-    groups: docker
-    append: true
-    state: present
-  become: true
-  notify: Reset ssh connection
+- name: Post-install tasks - Rootless mode
+  ansible.builtin.include_tasks:
+    file: postinstall_rootless.yml
+  when: docker_enable_rootless_mode is truthy
 
 - name: Configure docker daemon
   ansible.builtin.copy:
-    content: "{{ docker_daemon_json }}"
-    dest: /etc/docker/daemon.json
+    content: "{{ docker_daemon_json_content | from_json | to_nice_json }}"
+    dest: "{{ docker_daemon_json_path }}"
     mode: "0644"
     backup: true
-    validate: dockerd --config-file=%s --validate
+    validate: "{{ dockerd_bin_path }} --config-file=%s --validate"
   diff: true
-  become: true
+  become: "{{ not docker_enable_rootless_mode }}"
   notify: Restart docker daemon
-
-- name: Start and enable Docker service
-  ansible.builtin.service:
-    name: docker
-    state: started
-    enabled: true
-  become: true
 
 - name: Apply notified handlers
   ansible.builtin.meta: flush_handlers
 
+- name: Check if daemon is rootless
+  ansible.builtin.command:
+    argv:
+      - "{{ docker_bin_path }}"
+      - info
+      - --format
+      - >-
+        {% raw %}{{ range .SecurityOptions }}{{ if eq . "name=rootless" }}true{{ end }}{{ end }}{% endraw %}
+  changed_when: false
+  register: docker_daemon_check_rootless
+  failed_when: docker_daemon_check_rootless.stdout != 'true'
+  when: docker_enable_rootless_mode is truthy
+
 - name: Validate install
   ansible.builtin.command:
-    cmd: docker run --rm hello-world
+    cmd: "{{ docker_bin_path }} run --rm hello-world"
   changed_when: false
-  # Do not run in GitHub Actions (docker-in-docker doesn't work atm)
-  when: >
-    "-azure" not in ansible_facts['kernel']
+  # Doesn't work in containers
+  when: not docker_host_is_container
