@@ -28,39 +28,3 @@ jobs:
         run: ansible-lint .
         env:
           FORCE_COLOR: "1"
-
-  molecule:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        distro:
-          - debian12
-          - debian13
-          - ubuntu2204
-          - ubuntu2404
-          - ubuntu2604
-          - rockylinux9
-          - rockylinux10
-
-    steps:
-      - name: Checkout the codebase
-        uses: actions/checkout@v6
-
-      # Fails without "requirements.txt" for some reason
-      # https://github.com/marketplace/actions/build-and-setup-python#no-file-in--matched-to-requirementstxt-or-pyprojecttoml-make-sure-you-have-checked-out-the-target-repository
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.14"
-          cache: pip
-
-      - name: Install Python packages
-        run: pip install -r requirements.txt
-
-      - name: Run Molecule tests
-        run: molecule test
-        env:
-          MOLECULE_DISTRO: ${{ matrix.distro }}
-          # Enable colors in CI logs
-          PY_COLORS: '1'
-          ANSIBLE_FORCE_COLOR: '1'

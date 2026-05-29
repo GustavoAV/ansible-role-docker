@@ -1,0 +1,10 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.define "single" do |single|
+    single.vm.box = ENV['BOX'] || "cloud-image/ubuntu-26.04"
+    single.vm.hostname = "single"
+    single.vm.network "forwarded_port", guest: 22, host: "2211"
+  end
+end

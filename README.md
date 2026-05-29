@@ -42,7 +42,7 @@ Apply the role with a playbook. E.g: Create the following file and apply with `a
 
 ## Development
 
-> First, install **python3.10** (or higher) and **docker**.
+> First, install **python3.10** (or higher) and **vagrant**.
 
 To setup your development environments, run the commands below.
 
@@ -67,7 +67,7 @@ molecule --version
 And then, run this to test everything:
 
 ```bash
-molecule test
+cd tests/ && make full
 ```
 
 ## References

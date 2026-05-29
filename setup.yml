@@ -1,0 +1,7 @@
+---
+- name: Setup docker
+  hosts: all
+  tasks:
+    - name: Apply docker role  # noqa: role-name[path]
+      ansible.builtin.include_role:
+        name: ../ansible-role-docker

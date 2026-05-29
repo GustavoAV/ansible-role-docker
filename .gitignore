@@ -44,5 +44,6 @@ Thumbs.db
 ##########
 # Extras #
 ##########
+.ansible
+.vagrant
 .vscode
-.ansible/

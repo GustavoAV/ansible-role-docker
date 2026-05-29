@@ -1,0 +1,7 @@
+---
+all:
+  hosts:
+    single:
+      ansible_host: 127.0.0.1
+      ansible_port: 2211
+      ansible_ssh_private_key_file: .vagrant/machines/single/virtualbox/private_key
