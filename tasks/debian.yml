@@ -3,12 +3,24 @@
   ansible.builtin.apt:
     name: "{{ docker_debian_old_pkgs }}"
     state: absent
+  become: true
 
-- name: Add dependencies
+- name: Install dependencies
   ansible.builtin.apt:
     name: "{{ docker_debian_deps }}"
     state: present
     update_cache: true
+    cache_valid_time: 3600
+  become: true
+
+- name: Install rootless mode dependencies
+  ansible.builtin.apt:
+    name: "{{ docker_debian_rootless_deps }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: docker_enable_rootless_mode is truthy
 
 - name: Create keyrings directory
   ansible.builtin.file:
@@ -17,6 +29,7 @@
     owner: root
     group: root
     state: directory
+  become: true
 
 - name: Add docker repo gpg key
   ansible.builtin.get_url:
@@ -25,6 +38,7 @@
     mode: "0644"
     owner: root
     group: root
+  become: true
 
 - name: Get machine architecture
   ansible.builtin.command:
@@ -46,9 +60,11 @@
     mode: "0644"
     owner: root
     group: root
+  become: true
   register: docker_apt_setup_repo
 
 - name: Update apt cache # noqa: no-handler
   ansible.builtin.apt:
     update_cache: true
+  become: true
   when: docker_apt_setup_repo is changed

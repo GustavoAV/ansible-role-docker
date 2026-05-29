@@ -2,7 +2,18 @@
 - name: Reset ssh connection
   ansible.builtin.meta: reset_connection
 
+- name: Systemd daemon reload
+  ansible.builtin.systemd:
+    daemon_reload: true
+  become: true
+
 - name: Restart docker daemon
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: docker
     state: restarted
+    scope: "{{ 'user' if docker_enable_rootless_mode else 'system' }}"
+  become: "{{ not docker_enable_rootless_mode }}"
+
+- name: Reboot host
+  ansible.builtin.reboot:
+  become: true
