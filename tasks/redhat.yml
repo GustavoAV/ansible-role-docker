@@ -5,6 +5,14 @@
     state: absent
   become: true
 
+- name: Install rootless mode dependencies
+  ansible.builtin.dnf:
+    name: "{{ docker_redhat_rootless_deps }}"
+    state: present
+    update_cache: true
+  become: true
+  when: docker_enable_rootless_mode is truthy
+
 - name: Add Docker repository
   ansible.builtin.get_url:
     url: "{{ docker_base_linux_url }}/centos/docker-ce.repo"

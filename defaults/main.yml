@@ -8,7 +8,7 @@ docker_apt_gpg_file: /etc/apt/keyrings/docker.asc
 # Apt repository sources file
 docker_apt_repo_sources: |
   Types: deb
-  URIs: {{ docker_base_linux_url }}/{{ ansible_facts['distribution'] | lower }}
+  URIs: {{ docker_base_linux_url }}/{{ ansible_facts.distribution | lower }}
   Suites: {{ docker_distro_codename.stdout }}
   Components: stable
   Architectures: {{ docker_dpkg_arch.stdout }}
@@ -45,13 +45,34 @@ docker_redhat_old_pkgs:
 docker_install_pkgs:
   - docker-ce
   - docker-ce-cli
+  - docker-ce-rootless-extras
   - containerd.io
   - docker-buildx-plugin
   - docker-compose-plugin
 
+# Installs Docker in rootless mode
+docker_enable_rootless_mode: false
+
+# Rootless mode dependencies
+docker_debian_rootless_deps:
+  # Contains "newuidmap" and "newgidmap"
+  - uidmap
+  # Contains "modprobe"
+  - kmod
+docker_redhat_rootless_deps:
+  # Contains "newuidmap" and "newgidmap"
+  - shadow-utils
+  # Contains "modprobe"
+  - kmod
+
+# Docker commands path
+docker_bin_path: "{{ '~' if docker_enable_rootless_mode else '/usr' }}/bin/docker"
+dockerd_bin_path: "{{ '~' if docker_enable_rootless_mode else '/usr' }}/bin/dockerd"
+
 # Daemon Config Json
 # https://docs.docker.com/reference/cli/dockerd/#daemon-configuration-file
-docker_daemon_json: |
+docker_daemon_json_path: "{{ '~/.config' if docker_enable_rootless_mode else '/etc' }}/docker/daemon.json"
+docker_daemon_json_content: |
   {
     "log-driver": "local",
     "log-opts": {
