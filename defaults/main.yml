@@ -65,10 +65,6 @@ docker_redhat_rootless_deps:
   # Contains "modprobe"
   - kmod
 
-# Docker commands path
-docker_bin_path: "{{ '~' if docker_enable_rootless_mode else '/usr' }}/bin/docker"
-dockerd_bin_path: "{{ '~' if docker_enable_rootless_mode else '/usr' }}/bin/dockerd"
-
 # Daemon Config Json
 # https://docs.docker.com/reference/cli/dockerd/#daemon-configuration-file
 docker_daemon_json_path: "{{ '~/.config' if docker_enable_rootless_mode else '/etc' }}/docker/daemon.json"

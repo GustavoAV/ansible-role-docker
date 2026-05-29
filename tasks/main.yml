@@ -24,13 +24,19 @@
     file: postinstall_rootless.yml
   when: docker_enable_rootless_mode is truthy
 
+- name: Create docker daemon directory
+  ansible.builtin.file:
+    path: "{{ docker_daemon_json_path | dirname }}"
+    mode: "0755"
+    state: directory
+
 - name: Configure docker daemon
   ansible.builtin.copy:
     content: "{{ docker_daemon_json_content | from_json | to_nice_json }}"
     dest: "{{ docker_daemon_json_path }}"
     mode: "0644"
     backup: true
-    validate: "{{ dockerd_bin_path }} --config-file=%s --validate"
+    validate: dockerd --config-file=%s --validate
   diff: true
   become: "{{ not docker_enable_rootless_mode }}"
   notify: Restart docker daemon
@@ -41,7 +47,7 @@
 - name: Check if daemon is rootless
   ansible.builtin.command:
     argv:
-      - "{{ docker_bin_path }}"
+      - docker
       - info
       - --format
       - >-
@@ -53,7 +59,7 @@
 
 - name: Validate install
   ansible.builtin.command:
-    cmd: "{{ docker_bin_path }} run --rm hello-world"
+    cmd: docker run --rm hello-world
   changed_when: false
   # Doesn't work in containers
   when: not docker_host_is_container

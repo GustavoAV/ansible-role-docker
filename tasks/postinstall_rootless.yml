@@ -65,10 +65,10 @@
   become: true
   notify: Systemd daemon reload
 
-- name: Post-install - Install | Install rootless docker
+- name: Post-install - Install | Configure rootless docker
   ansible.builtin.command:
     cmd: dockerd-rootless-setuptool.sh install
-    creates: ~/bin/docker
+    creates: ~/.config/systemd/user/docker.service
 
 - name: Post-install - Install | Configure bashrc
   ansible.builtin.lineinfile:

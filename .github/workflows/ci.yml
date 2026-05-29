@@ -1,3 +1,4 @@
+---
 name: CI
 
 on:
@@ -12,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the codebase
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.14"
           cache: pip
@@ -29,16 +30,26 @@ jobs:
           FORCE_COLOR: "1"
 
   molecule:
-    needs: [lint]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro:
+          - debian12
+          - debian13
+          - ubuntu2204
+          - ubuntu2404
+          - ubuntu2604
+          - rockylinux9
+          - rockylinux10
+
     steps:
       - name: Checkout the codebase
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Fails without "requirements.txt" for some reason
       # https://github.com/marketplace/actions/build-and-setup-python#no-file-in--matched-to-requirementstxt-or-pyprojecttoml-make-sure-you-have-checked-out-the-target-repository
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.14"
           cache: pip
@@ -49,6 +60,7 @@ jobs:
       - name: Run Molecule tests
         run: molecule test
         env:
+          MOLECULE_DISTRO: ${{ matrix.distro }}
           # Enable colors in CI logs
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
