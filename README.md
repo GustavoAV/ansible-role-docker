@@ -1,18 +1,17 @@
-# Ansible Role - Docker
+# Ansible Role - Docker <!-- omit from toc -->
 
 Ansible role to setup Docker.
 
-- [Ansible Role - Docker](#ansible-role---docker)
-  - [Requirements](#requirements)
-  - [Usage](#usage)
-  - [Development](#development)
-  - [References](#references)
+- [Requirements](#requirements)
+- [Usage](#usage)
+- [Development](#development)
+- [References](#references)
 
 ## Requirements
 
 These are the requirements for using this role:
 
-- Operational system: Debian 12+, Ubuntu 22+ or RedHat 9+
+- Operational system: Debian 12+, Ubuntu 24+, Fedora 43+, RedHat 9+
 
 ## Usage
 
@@ -20,6 +19,10 @@ Create a `requirements.yml` file with the following content
 
 ```yaml
 ---
+collections:
+  - name: ansible.posix
+  - name: community.general
+
 roles:
   - name: gustavoav.docker
     src: git+https://github.com/GustavoAV/ansible-role-docker.git
@@ -42,32 +45,44 @@ Apply the role with a playbook. E.g: Create the following file and apply with `a
 
 ## Development
 
-> First, install **python3.10** (or higher) and **vagrant**.
+> First, install [VirtualBox](https://www.virtualbox.org/wiki/Linux_Downloads) and [Vagrant](https://developer.hashicorp.com/vagrant/docs/installation).
 
-To setup your development environments, run the commands below.
+Install UV and Ansible
 
 ```bash
-# Ubuntu/Debian
-sudo apt update && sudo apt install -y python3-venv pipx
-# RedHat
-sudo dnf install -y python3-venv pipx
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.local/bin/env
 
-# Python packages
-pipx install --include-deps ansible-dev-tools
-pipx inject --include-apps --include-deps ansible-dev-tools $(cat requirements.txt)
+uv tool install ansible-dev-tools --with-executables-from=ansible-core,ansible-lint
 
-pipx ensurepath
-source ~/.bashrc
-activate-global-python-argcomplete --user
-
-adt --version
-molecule --version
+# Validation
+ansible --version
+ansible-lint --version
 ```
 
-And then, run this to test everything:
+In the `tests/` directory, run the test commands
 
 ```bash
-cd tests/ && make full
+cd tests/
+
+make create # Create test VMs
+make apply  # Apply Ansible role
+make clean  # Remove test VMs
+
+make full   # Runs all the above commands
+```
+
+The tests use a **Ubuntu 26.04** image by default. If you want to test with other OSes, run:
+
+```bash
+# make <target> BOX=cloud-image/<os>
+make full BOX=cloud-image/ubuntu-24.04
+```
+
+To test all the possible options
+
+```bash
+make full_all
 ```
 
 ## References

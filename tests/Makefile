@@ -1,22 +1,50 @@
+BOX ?= cloud-image/ubuntu-26.04
+OS_LIST := debian-12 debian-13 ubuntu-24.04 ubuntu-26.04 fedora-43 rocky-9 rocky-10
+# OS_LIST := debian-12 debian-13 ubuntu-24.04 ubuntu-26.04
+
+full: create apply clean
+
 create:
-	vagrant up
+	BOX="$(BOX)" vagrant destroy -f
+	BOX="$(BOX)" vagrant up
 
 apply:
 	ansible-playbook -v ../setup.yml
 
-apply_rootless:
-	ansible-playbook -v ../setup.yml -e docker_enable_rootless_mode=true
-
 clean:
-	vagrant destroy -f
+	BOX="$(BOX)" vagrant destroy -f
 
-full:
-	$(MAKE) clean
-	@echo "[INFO] Testing rootful docker..."
-	$(MAKE) create
-	$(MAKE) apply
-	$(MAKE) clean
-	@echo "[INFO] Testing rootless docker"
-	$(MAKE) create
-	$(MAKE) apply_rootless
-	$(MAKE) clean
+get_boxes:
+	$(foreach os, $(OS_LIST), vagrant box add --provider virtualbox "cloud-image/$(os)";)
+
+full_all:
+	@passed=""; \
+	failed=""; \
+	for os in $(OS_LIST); do \
+		echo ""; \
+		echo "========================================"; \
+		echo "Testing: $$os"; \
+		echo "========================================"; \
+		if $(MAKE) full BOX="cloud-image/$$os"; then \
+			passed="$$passed $$os"; \
+			echo "✓ PASSED: $$os"; \
+		else \
+			failed="$$failed $$os"; \
+			echo "✗ FAILED: $$os"; \
+			$(MAKE) clean BOX="cloud-image/$$os" 2>/dev/null || true; \
+		fi; \
+	done; \
+	echo ""; \
+	echo "========================================"; \
+	echo "SUMMARY"; \
+	echo "========================================"; \
+	echo "Passed:$$passed"; \
+	echo "Failed:$$failed"; \
+	echo ""; \
+	if [ -z "$$failed" ]; then \
+		echo "✓ All tests passed!"; \
+		exit 0; \
+	else \
+		echo "✗ Some tests failed!"; \
+		exit 1; \
+	fi

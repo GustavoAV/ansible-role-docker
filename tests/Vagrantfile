@@ -1,10 +1,18 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+box = ENV['BOX'] || "cloud-image/ubuntu-26.04"
+
 Vagrant.configure("2") do |config|
-  config.vm.define "single" do |single|
-    single.vm.box = ENV['BOX'] || "cloud-image/ubuntu-26.04"
-    single.vm.hostname = "single"
-    single.vm.network "forwarded_port", guest: 22, host: "2211"
+  config.vm.define "rootful" do |rootful|
+    rootful.vm.box = box
+    rootful.vm.hostname = "rootful"
+    rootful.vm.network "forwarded_port", guest: 22, host: "2211"
+  end
+
+  config.vm.define "rootless" do |rootless|
+    rootless.vm.box = box
+    rootless.vm.hostname = "rootless"
+    rootless.vm.network "forwarded_port", guest: 22, host: "2212"
   end
 end
